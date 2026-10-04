@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quiz - Psychology of Stress, Health and Well-Being</title>
+  <meta name="description" content="Weekly practice quiz for the NPTEL course Psychology of Stress, Health and Well-Being.">
+  <link rel="icon" href="data:,">
+
+  <!-- Google Analytics -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-83ZYC1LSTS"></script>
+  <script>
+     window.dataLayer = window.dataLayer || [];
+     function gtag(){dataLayer.push(arguments);}
+     gtag('js', new Date());
+
+     gtag('config', 'G-83ZYC1LSTS');
+  </script>
+
+  <!-- Apply saved theme before first paint (dark is the default) -->
+  <script>
+    try { document.documentElement.dataset.theme = localStorage.getItem('theme') === 'light' ? 'light' : 'dark'; } catch (e) {}
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/quiz.css">
+  <script type="module" src="js/quiz.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap bar">
+      <a class="brand" href="index.html">NPTEL Psychology Quiz</a>
+      <button id="theme-toggle" class="btn" type="button">Light mode</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index.html">All weeks</a>
+      <span id="crumb-week"></span>
+    </nav>
+
+    <div class="page-head">
+      <h1 id="week-title">Loading...</h1>
+      <p id="week-desc" class="muted"></p>
+    </div>
+
+    <!-- Question and result views are rendered here by js/quiz.js -->
+    <div id="quiz" aria-live="polite"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>Made by Felicity Iris using Claude :)</p>
+      <p class="links">
+        <a href="https://github.com/FelicityIris/nptelpsychquiz" target="_blank" rel="noopener" data-track="source_view">Source code</a>
+        <a href="https://github.com/FelicityIris" target="_blank" rel="noopener" data-track="github_view">GitHub</a>
+        <a href="https://bsky.app/profile/felicityiris.bsky.social" target="_blank" rel="noopener" data-track="bsky_view">Bluesky</a>
+        <a href="https://onlinecourses.nptel.ac.in/e-learning/course/noc26_hs169" target="_blank" rel="noopener" data-track="nptel_view">NPTEL course</a>
+        <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener" data-track="license_view">License: GPLv3</a>
+      </p>
+      <p class="small">Anonymous usage statistics are collected with Google Analytics.</p>
+    </div>
+  </footer>
+</body>
+</html>
