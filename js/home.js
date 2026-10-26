@@ -35,6 +35,13 @@ async function render() {
       })
     );
 
+    // Mixed practice summary: total questions and last score
+    const total = counts.reduce((sum, n) => sum + (n || 0), 0);
+    const lastMixed = getResult('mixed');
+    document.getElementById('mixed-meta').textContent =
+      `${total} questions from ${weeks.length} weeks` +
+      (lastMixed ? `. Last score: ${lastMixed.score} / ${lastMixed.total}` : '');
+
     track('home_view', { week_count: weeks.length });
   } catch (err) {
     showError('Could not load the week list. If you opened this file directly, serve the folder over HTTP instead.');

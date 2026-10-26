@@ -1,8 +1,9 @@
 import { initTheme } from './theme.js';
 import { initLinkTracking, track } from './analytics.js';
-import { loadCategories, loadQuestions } from './data.js';
+import { loadCategories, loadQuestions, loadAllQuestions } from './data.js';
 import { saveResult } from './storage.js';
 import { createStopwatch } from './timer.js';
+import { shuffle, shuffleOptions } from './shuffle.js';
 import { el } from './dom.js';
 
 initTheme();
@@ -12,12 +13,15 @@ const root = document.getElementById('quiz');
 const titleEl = document.getElementById('week-title');
 const descEl = document.getElementById('week-desc');
 const crumbEl = document.getElementById('crumb-week');
-const weekNum = Number(new URLSearchParams(location.search).get('week'));
+const weekParam = new URLSearchParams(location.search).get('week');
+const isMixed = weekParam === 'all';   // quiz.html?week=all = every week combined
+const weekNum = Number(weekParam);
 
 const state = {
   week: null,
-  questions: [],
-  options: [],
+  pool: [],        // questions as loaded (one week, or all weeks when mixed)
+  questions: [],   // questions for this attempt (the pool, reshuffled when mixed)
+  options: [],     // shuffled answer options for each question
   answers: [],
   opened: new Set(),
   index: 0,
@@ -44,18 +48,14 @@ function totalMs() {
   return state.sessionWatch ? state.sessionWatch.read() : 0;
 }
 
-function shuffleOptions(question) {
-  const options = [...question.options];
-  for (let i = options.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [options[i], options[j]] = [options[j], options[i]];
-  }
-  return options;
-}
+// Option letters follow the shuffled order shown on screen, not the ids in the data
+const letter = (pos) => String.fromCharCode(65 + pos);
+const weekOf = (q) => q.week ?? state.week.week;
 
-function optionText(q, id) {
-  const o = q.options.find((x) => x.id === id);
-  return o ? `${o.id}. ${o.text}` : '-';
+// "B. text" for option `id` of question `index`, in this attempt's order
+function optionText(index, id) {
+  const pos = state.options[index].findIndex((o) => o.id === id);
+  return pos < 0 ? '-' : `${letter(pos)}. ${state.options[index][pos].text}`;
 }
 
 function showMessage(text) {
@@ -178,6 +178,7 @@ function renderQuestionCard(index) {
   const q = state.questions[index];
   const answer = state.answers[index];
   const answered = Boolean(answer);
+  const correctPos = state.options[index].findIndex((o) => o.id === q.correctOption);
 
   const options = state.options[index].map((o, i) => {
     let className = 'option';
@@ -194,7 +195,7 @@ function renderQuestionCard(index) {
                 'data-id': o.id,
                 onclick: () => choose(index, o.id),
               },
-              el('span', { class: 'key', text: `${String.fromCharCode(65 + i)}.` }),
+              el('span', { class: 'key', text: `${letter(i)}.` }),
                  el('span', { text: o.text })
               )
     );
@@ -208,7 +209,7 @@ function renderQuestionCard(index) {
               class: `feedback ${answer.result === 'correct' ? 'ok' : 'bad'}`,
               text: answer.result === 'correct'
               ? 'Correct.'
-              : `Incorrect. The correct answer is ${q.correctOption}.`,
+              : `Incorrect. The correct answer is ${letter(correctPos)}.`,
             })
             : null
   );
@@ -334,6 +335,7 @@ function choose(index, optionId) {
   track('answer_select', {
     ...base(),
         question_id: q.id,
+        question_week: weekOf(q),
         question_number: index + 1,
         selected_option: optionId,
         correct_option: q.correctOption,
@@ -379,9 +381,10 @@ function showResults(score, total, durationMs) {
     const a = state.answers[i];
     return el('tr', {},
               el('td', { text: String(i + 1) }),
+              isMixed ? el('td', { text: `Week ${q.week}` }) : null,
               el('td', { text: q.question }),
-              el('td', { class: a.result === 'correct' ? 'ok' : 'bad', text: optionText(q, a.selected) }),
-              el('td', { text: optionText(q, q.correctOption) }),
+              el('td', { class: a.result === 'correct' ? 'ok' : 'bad', text: optionText(i, a.selected) }),
+              el('td', { text: optionText(i, q.correctOption) }),
               el('td', { class: 'num', text: `${(a.timeMs / 1000).toFixed(1)} s` })
     );
   });
@@ -393,7 +396,7 @@ function showResults(score, total, durationMs) {
           el('small', { text: `${Math.round((score / total) * 100)}%, ${fmt(durationMs)} total` })
        ),
        el('div', { class: 'actions' },
-          el('button', { class: 'btn btn-primary', type: 'button', onclick: restart, text: 'Retry this week' }),
+          el('button', { class: 'btn btn-primary', type: 'button', onclick: restart, text: isMixed ? 'Retry with a new order' : 'Retry this week' }),
           el('a', { class: 'btn', href: 'index.html', text: 'All weeks' })
        )
     ),
@@ -401,6 +404,7 @@ function showResults(score, total, durationMs) {
        el('table', { class: 'data' },
           el('thead', {}, el('tr', {},
                              el('th', { text: '#' }),
+                             isMixed ? el('th', { text: 'Week' }) : null,
                              el('th', { text: 'Question' }),
                              el('th', { text: 'Your answer' }),
                              el('th', { text: 'Correct answer' }),
@@ -421,6 +425,7 @@ function start() {
   state.answers = [];
   state.opened = new Set();
   state.questionTimes = state.questions.map(() => 0);
+  state.questions = isMixed ? shuffle(state.pool) : state.pool; // new random order each attempt
   state.options = state.questions.map(shuffleOptions);
   state.mode = 'all';
   state.finished = false;
@@ -461,8 +466,8 @@ document.addEventListener('keydown', (e) => {
   if (state.answers[state.index]) return;
 
   const opts = state.options[state.index];
-  const opt = opts.find((o) => o.id === key)
-  || (/^[1-9]$/.test(key) ? opts[Number(key) - 1] : null);
+  const pos = /^[a-z]$/.test(key) ? key.charCodeAt(0) - 97 : /^[1-9]$/.test(key) ? Number(key) - 1 : -1;
+  const opt = opts[pos];
   if (opt) choose(state.index, opt.id);
 });
 
@@ -479,26 +484,37 @@ window.addEventListener('pagehide', () => {
 async function init() {
   try {
     const { weeks } = await loadCategories();
-    const week = weeks.find((w) => w.week === weekNum);
+    let week;
 
-    if (!week) {
-      titleEl.textContent = 'Week not found';
-      showMessage('There is no quiz for this week number.');
-      track('load_error', { page: 'quiz', message: `unknown week: ${params_week()}` });
-      return;
+    if (isMixed) {
+      // Pseudo-week that stands for every question from every week
+      week = { week: 'mixed', title: 'All weeks, mixed', description: '' };
+      state.pool = await loadAllQuestions(weeks);
+      week.description = `${state.pool.length} questions from ${weeks.length} weeks in random order.`;
+    } else {
+      week = weeks.find((w) => w.week === weekNum);
+      if (!week) {
+        titleEl.textContent = 'Week not found';
+        showMessage('There is no quiz for this week number.');
+        track('load_error', { page: 'quiz', message: `unknown week: ${params_week()}` });
+        return;
+      }
+      state.pool = await loadQuestions(week.file);
     }
 
+    if (!state.pool.length) throw new Error('No questions found');
     state.week = week;
-    document.title = `Week ${week.week}: ${week.title} - Psychology of Stress, Health and Well-Being`;
-    titleEl.textContent = `Week ${week.week}: ${week.title}`;
+    state.questions = state.pool;
+
+    const heading = isMixed ? 'Mixed practice: all weeks' : `Week ${week.week}: ${week.title}`;
+    document.title = `${heading} - Psychology of Stress, Health and Well-Being`;
+    titleEl.textContent = heading;
     descEl.textContent = week.description;
-    crumbEl.textContent = `Week ${week.week}`;
+    crumbEl.textContent = isMixed ? 'Mixed practice' : `Week ${week.week}`;
 
-    state.questions = await loadQuestions(week.file);
-    if (!state.questions.length) throw new Error('No questions in this week');
-
-    track(`week${week.week}_view`, { ...base(), total_questions: state.questions.length });
-    track('week_view', { ...base(), total_questions: state.questions.length });
+    // Per-week event (week1_view, mixed_view) plus a generic one for easier reporting
+    track(isMixed ? 'mixed_view' : `week${week.week}_view`, { ...base(), total_questions: state.pool.length });
+    track('week_view', { ...base(), total_questions: state.pool.length });
 
     start();
   } catch (err) {

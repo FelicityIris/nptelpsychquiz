@@ -11,6 +11,8 @@
 .quiz-sidebar {
   position: sticky;
   top: 16px;
+  max-height: calc(100vh - 32px); /* long grids (mixed test) scroll inside the panel */
+  overflow-y: auto;
   margin-top: 12px;
   padding: 12px;
   background: var(--panel);
@@ -76,11 +78,18 @@
 .legend-item.answered::before { background: var(--ok-bg); border-color: var(--ok); }
 
 /* Question card */
-.question-card { scroll-margin-top: 16px; }
+.question-card { scroll-margin-top: 64px; } /* clears the sticky progress bar */
 .question-card .question { margin-bottom: 14px; }
 .submit-row { margin-bottom: 20px; }
 
-/* Progress */
+/* Progress: sticks to the top of the viewport so the timer stays visible while scrolling */
+#quiz-progress {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 10px 0 8px;
+  background: var(--bg); /* hides cards scrolling underneath */
+}
 .meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
 .bar-track { height: 3px; background: var(--border); }
 .bar-fill { height: 100%; background: var(--accent); transition: width 0.2s ease; }
@@ -132,7 +141,7 @@
 /* Mobile */
 @media (max-width: 720px) {
   .quiz-layout { grid-template-columns: minmax(0, 1fr); }
-  .quiz-sidebar { position: static; grid-row: 1; }
+  .quiz-sidebar { position: static; grid-row: 1; max-height: 45vh; }
   .mode-switch { grid-template-columns: 1fr 1fr; }
   .question-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
   .navigator-legend { grid-template-columns: repeat(3, minmax(0, 1fr)); }
