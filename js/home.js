@@ -44,7 +44,7 @@ async function render() {
 
     track('home_view', { week_count: weeks.length });
   } catch (err) {
-    showError('Could not load the week list. If you opened this file directly, serve the folder over HTTP instead.');
+    showError('Could not load the week list. Try a hard refresh (Ctrl+Shift+R). If it keeps happening, see "Something not working?" at the bottom of the page.');
     track('load_error', { page: 'home', message: String(err.message).slice(0, 100) });
   }
 }

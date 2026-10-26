@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="css/style.css">
   <script type="module" src="js/home.js"></script>
+  <script src="js/fallback.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -59,7 +60,7 @@
           </tr>
         </thead>
         <tbody id="week-rows">
-          <tr><td colspan="5" class="status">Loading weeks...</td></tr>
+          <tr><td colspan="5" class="status" id="loading">Loading weeks...</td></tr>
         </tbody>
       </table>
     </div>
@@ -84,6 +85,16 @@
         <a href="https://onlinecourses.nptel.ac.in/e-learning/course/noc26_hs169" target="_blank" rel="noopener" data-track="nptel_view">NPTEL course</a>
         <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener" data-track="license_view">License: GPLv3</a>
       </p>
+      <details class="help">
+        <summary>Something not working?</summary>
+        <p>The site may be using an old saved copy of its files. Try a hard refresh first: Ctrl+Shift+R (Windows, Linux) or Cmd+Shift+R (Mac). If that does not help, clear this site's data:</p>
+        <ul>
+          <li>Chrome, Edge: click the icon left of the address bar, open Site settings, then Delete data (Clear data in Edge).</li>
+          <li>Firefox: click the padlock, then Clear cookies and site data.</li>
+          <li>Safari: Settings, Privacy, Manage Website Data, find this site and Remove.</li>
+        </ul>
+        <p>Clearing site data also resets your saved scores and theme.</p>
+      </details>
       <p class="small">Anonymous usage statistics are collected with Google Analytics.</p>
     </div>
   </footer>

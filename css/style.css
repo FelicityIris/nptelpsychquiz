@@ -119,10 +119,25 @@ table.data .status { color: var(--muted); padding: 16px 12px; }
 .mixed h2 { margin: 0 0 2px; font-size: 15px; font-weight: 600; }
 .mixed p { margin: 0; }
 
+/* Hint shown when a page is stuck loading */
+.notice {
+  max-width: 72ch;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+}
+
 /* Footer */
 .footer { border-top: 1px solid var(--border); background: var(--panel); padding: 14px 0; color: var(--muted); font-size: 12.5px; }
 .footer p { margin: 2px 0; }
 .footer .links { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.help { margin: 8px 0; }
+.help summary { width: fit-content; cursor: pointer; }
+.help summary:hover { color: var(--text); }
+.help p, .help ul { max-width: 70ch; margin: 6px 0; }
+.help ul { padding-left: 18px; }
 
 @media (max-width: 720px) {
   .mixed { flex-direction: column; align-items: flex-start; }

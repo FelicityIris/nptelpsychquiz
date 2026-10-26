@@ -519,7 +519,7 @@ async function init() {
     start();
   } catch (err) {
     titleEl.textContent = 'Quiz unavailable';
-    showMessage('Could not load this quiz. If you opened the file directly, serve the folder over HTTP instead.');
+    showMessage('Could not load this quiz. Try a hard refresh (Ctrl+Shift+R). If it keeps happening, see "Something not working?" at the bottom of the page.');
     track('load_error', { page: 'quiz', message: String(err.message).slice(0, 100) });
   }
 }
